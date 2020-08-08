@@ -1,0 +1,14 @@
+language: ruby
+jobs:
+  include:
+    - name: docker
+      script:
+        - docker build --tag "${DOCKER_IMAGE}:latest" .
+      before_deploy:
+        - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+        - if [ -n "$TRAVIS_TAG" ]; then docker tag "${DOCKER_IMAGE}:latest" "${DOCKER_IMAGE}:${$TRAVIS_TAG}"; fi
+      deploy:
+        provider: script
+        script: docker push "${DOCKER_IMAGE}:latest" && if [ -n "$TRAVIS_TAG" ]; then docker push "${DOCKER_IMAGE}:${TRAVIS_TAG}"; fi
+        on:
+          branch: master
